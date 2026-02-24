@@ -618,3 +618,20 @@ app.get("/hosts", async (req, res) => {
   );
   res.json(result.rows);
 });
+
+app.get("/migrate-users", async (req, res) => {
+  try {
+    await pool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS credit_balance DECIMAL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS earnings_balance DECIMAL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS audio_rate DECIMAL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS video_rate DECIMAL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS message_rate DECIMAL DEFAULT 0;
+    `);
+
+    res.json({ message: "Users table migrated successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
