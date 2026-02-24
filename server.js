@@ -4,6 +4,7 @@ const express = require("express");
 const pool = require("./db"); 
 
 async function ensureTables() {
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -11,14 +12,66 @@ async function ensureTables() {
       password VARCHAR(255) NOT NULL,
       role VARCHAR(50) NOT NULL,
       display_name VARCHAR(255),
+
+      credit_balance DECIMAL DEFAULT 0,
+      earnings_balance DECIMAL DEFAULT 0,
+
+      audio_rate DECIMAL DEFAULT 0,
+      video_rate DECIMAL DEFAULT 0,
+      message_rate DECIMAL DEFAULT 0,
+
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  console.log("Users table ensured.");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS sessions (
+      id SERIAL PRIMARY KEY,
+      caller_id INTEGER REFERENCES users(id),
+      host_id INTEGER REFERENCES users(id),
+      call_type VARCHAR(20),
+      rate_per_minute DECIMAL,
+      pre_authorized_amount DECIMAL,
+      started_at TIMESTAMP,
+      ended_at TIMESTAMP,
+      status VARCHAR(20)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS calls (
+      id SERIAL PRIMARY KEY,
+      caller_id INTEGER REFERENCES users(id),
+      host_id INTEGER REFERENCES users(id),
+      duration INTEGER,
+      rate_per_minute DECIMAL,
+      total_cost DECIMAL,
+      call_type VARCHAR(20),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS platform_earnings (
+      id SERIAL PRIMARY KEY,
+      call_id INTEGER REFERENCES calls(id),
+      commission_amount DECIMAL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  console.log("All tables ensured.");
 }
 
-ensureTables();
+async function startServer() {
+  await ensureTables();
+
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
