@@ -1,7 +1,24 @@
 console.log("PROFILE ROUTE VERSION LOADED");
 
 const express = require("express");
-const pool = require("./db"); //for database connection postgresql
+const pool = require("./db"); 
+
+async function ensureTables() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) NOT NULL,
+      display_name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  console.log("Users table ensured.");
+}
+
+ensureTables();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
