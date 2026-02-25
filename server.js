@@ -638,3 +638,11 @@ app.get("/migrate-users", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+app.get("/debug/users", async (req, res) => {
+  const result = await pool.query(
+    "SELECT id, email, role FROM users"
+  );
+  res.json(result.rows);
+});
