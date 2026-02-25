@@ -310,10 +310,10 @@ app.post("/caller/start-call", authenticateToken, async (req, res) => {
     await client.query("BEGIN");
 
     // 1️⃣ Validate call type
-    if (!["audio", "video"].includes(callType)) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ message: "Invalid call type" });
-    }
+    if (!["audio", "video", "message"].includes(callType)) {
+  await client.query("ROLLBACK");
+  return res.status(400).json({ message: "Invalid call type" });
+}
 
     // 2️⃣ Get caller balance
     const callerResult = await client.query(
@@ -341,8 +341,10 @@ app.post("/caller/start-call", authenticateToken, async (req, res) => {
 
     if (callType === "audio") {
       ratePerMinute = parseFloat(hostResult.rows[0].audio_rate);
-    } else {
+    } else if (callType === "video") {
       ratePerMinute = parseFloat(hostResult.rows[0].video_rate);
+    } else if (callType === "message") {
+      ratePerMinute = parseFloat(hostResult.rows[0].message_rate); // Use message_rate!
     }
 
     if (!ratePerMinute || ratePerMinute <= 0) {
