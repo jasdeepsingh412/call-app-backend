@@ -614,7 +614,7 @@ app.post("/caller/end-call", authenticateToken, async (req, res) => {
 
 app.get("/hosts", async (req, res) => {
   const result = await pool.query(
-    "SELECT id, display_name, audio_rate FROM users WHERE role = 'HOST'"
+    "SELECT id, display_name, audio_rate, video_rate, message_rate FROM users WHERE role = 'HOST'"
   );
   res.json(result.rows);
 });
