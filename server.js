@@ -297,6 +297,7 @@ app.post("/caller/topup", authenticateToken, async (req, res) => {
 
 // Route for callers to start a call (deduct credit balance) // also log calls
 app.post("/caller/start-call", authenticateToken, async (req, res) => {
+  const callerId = req.user.id;
 
   if (req.user.role !== "CALLER") {
     return res.status(403).json({ message: "Only callers can start calls" });
@@ -325,7 +326,7 @@ app.post("/caller/start-call", authenticateToken, async (req, res) => {
 
     // 3️⃣ Get host rates
     const hostResult = await client.query(
-      `SELECT audio_rate, video_rate
+      `SELECT audio_rate, video_rate, message_rate
        FROM users
        WHERE id = $1 AND role = 'HOST'`,
       [hostId]
@@ -344,7 +345,7 @@ app.post("/caller/start-call", authenticateToken, async (req, res) => {
     } else if (callType === "video") {
       ratePerMinute = parseFloat(hostResult.rows[0].video_rate);
     } else if (callType === "message") {
-      ratePerMinute = parseFloat(hostResult.rows[0].message_rate); // Use message_rate!
+      ratePerMinute = parseFloat(hostResult.rows[0].message_rate);
     }
 
     if (!ratePerMinute || ratePerMinute <= 0) {
